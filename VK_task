@@ -1,0 +1,45 @@
+//здесь представлены функции для загрузки файла json и его парсеринг, а также заполнение структуры
+var serv: [Services]=[]
+
+func loadJ(){
+
+    let url=URL(string: "https://publicstorage.hb.bizmrg.com/sirius/result.json")
+    let session=URLSession(configuration:.default)
+
+    let downloadTask=session.downloadTask(with:url!){(urlFile,responce,error) in
+        if urlFile!=nil{
+            let path=NSSearchPathForDirectoriesInDomains(.libraryDirectory,.userDomainMask,true)[0]+"/data.json"
+            let urlPath=URL(fileUrlWithPath: path)
+            try? FileManager.default.copyItem(at:urlFile, to:urlPath)
+            parseServ()
+        }
+    }
+    downloadTask.resume()
+}
+
+func parseServ(){
+    let path=NSSearchPathForDirectoriesInDomains(.libraryDirectory,.userDomainMask,true)[0]+"/data.json"
+    let urlPath=URL(fileUrlWithPath: path)
+    let data=try? Data(contentsOf: urlPath)
+    let rootD=try? JSONSeralization.jsonObject(with: data!,options: .allowFragments) as! Dictionary<String, Any>
+    let array=rootD!["services"] as! [Dictionary<String, Any>]
+    var rArray: [Services]=[]
+    for d in array{
+        let newServices = Services(dictionary: d)
+        rArray.append(newServices)
+    }
+    serv=rArray
+}
+
+struct Services{
+    var name: String
+    var description: String
+    var link: String
+    var icon_url: String
+    init (dictionary: Dictionary<String, Any>){
+        name = dictionary["name"] as? String ?? ""
+        description = dictionary["description"] as? String ?? ""
+        link = dictionary["link"] as? String ?? ""
+        icon_url = dictionary["icon_url"] as? String ?? ""
+    }
+}
